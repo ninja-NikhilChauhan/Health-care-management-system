@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
+        <a class="navbar-brand text-white" href="admindashboard.html">ADMIN-DASHBOARD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item ml-3">
+                    <a class="nav-link btn btn-primary text-white" href="adminLoginpage.html">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card" style="width: 400px;">
+            <div class="card-body">
+                <h4 class="card-title text-center mb-4">Admin Login</h4>
+                <form id="adminLoginForm">
+                    <!-- Email input -->
+                    <div class="form-group d-flex flex-column">
+                        <label for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+                        <button type="button" id="getOTPBtn" class="btn btn-secondary mt-2">Get OTP</button>
+                    </div>
+
+                    <!-- Login Code input -->
+                    <div class="form-group">
+                        <label for="loginCode">Login Code</label>
+                        <input type="password" class="form-control" id="loginCode" placeholder="Enter login code" required disabled>
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>Login</button>
+
+                    <!-- Register link -->
+                    <div class="text-center mt-3">
+                        <a href="adminRegisterpage.html">Register</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('getOTPBtn').addEventListener('click', async function () {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('Please enter a valid email');
+                return;
+            }
+
+            // Disable the Get OTP button after it's clicked
+            document.getElementById('getOTPBtn').disabled = true;
+
+            // Make a request to the backend to send the OTP to the provided email
+            try {
+                const response = await fetch("http://localhost:5000/api/adminauth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('OTP sent to your email!');
+                    // Enable the Login Code input and Submit button
+                    document.getElementById('loginCode').disabled = false;
+                    document.getElementById('submitBtn').disabled = false;
+                } else {
+                    alert(data.error || "Something went wrong!");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("There was an error while sending the OTP.");
+            }
+        });
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const loginCode = document.getElementById('loginCode').value;
+
+            // Send the email and OTP for verification
+            try {
+                const response = await fetch("http://localhost:5000/api/adminauth/verify-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, otp: loginCode })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log(data)
+                    alert('Login successful');
+                    // Store the token in the session storage
+                    sessionStorage.setItem("token", data.token);
+                    window.location.href = "./admindashboard.html"; // Redirect to the admin dashboard
+                } else {
+                    alert(data.error || "Invalid OTP");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("There was an error during the verification.");
+            }
+        });
+    </script>
+</body>
+
+</html>

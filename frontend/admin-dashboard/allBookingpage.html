@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Booking Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
+        <a class="navbar-brand text-white" href="admindashboard.html">ADMIN-DASHBOARD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <button class="nav-link btn btn-light">All Bookings</button>
+                </li>
+                <li class="nav-item ml-3">
+                    <button class="nav-link btn btn-primary text-white">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Status Count Section -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="alert alert-warning" role="alert">
+                    <strong>Pending:</strong> <span id="pendingCount">0</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-success" role="alert">
+                    <strong>Accepted:</strong> <span id="acceptedCount">0</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-primary" role="alert">
+                    <strong>Completed:</strong> <span id="completedCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <h3>All Bookings</h3>
+        <div class="list-group" id="bookingList">
+            <!-- Bookings will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize jsPDF
+        window.jsPDF = window.jspdf.jsPDF;
+
+        // Fetch bookings data from an API
+        async function fetchBookings() {
+            try {
+                const response = await fetch('http://localhost:5000/api/form'); // Replace with your API endpoint
+                const bookings = await response.json();
+                console.log(bookings);
+                renderBookings(bookings);
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            }
+        }
+
+        // Function to render the bookings dynamically
+        function renderBookings(bookings) {
+            const bookingList = document.getElementById('bookingList');
+            const pendingCountElement = document.getElementById('pendingCount');
+            const acceptedCountElement = document.getElementById('acceptedCount');
+            const completedCountElement = document.getElementById('completedCount');
+
+            bookingList.innerHTML = ''; // Clear any existing content
+
+            let pendingCount = 0;
+            let acceptedCount = 0;
+            let completedCount = 0;
+
+            bookings.forEach(booking => {
+                const bookingItem = document.createElement('div');
+                bookingItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+                // Check if the status is already updated (Accepted or Rejected) to disable buttons
+                const isDisabled = booking.status === 'Accepted' || booking.status === 'Rejected';
+
+                // Check if medical document exists
+                const hasMedicalDoc = booking.medicalDocumentUrl ? true : false;
+
+                bookingItem.innerHTML = `
+                    <div>
+                        <h5 class="mb-1">Booking #${booking._id}</h5>
+                        <p class="mb-1"><strong>Name:</strong> ${booking.name}</p>
+                        <p class="mb-1"><strong>Email:</strong> ${booking.email}</p>
+                        <p class="mb-1"><strong>Phone:</strong> ${booking.phonenumber}</p>
+                        <p class="mb-1"><strong>Date of Birth:</strong> ${new Date(booking.dateOfBirth).toLocaleDateString()}</p>
+                        <p class="mb-1"><strong>Address:</strong> ${booking.address}</p>
+                        <p class="mb-1"><strong>Doctor Name:</strong> ${booking.doctorname}</p>
+                        <p class="mb-1"><strong>Slot Time:</strong> ${booking.slotTime}</p>
+                        <p class="mb-1"><strong>Description:</strong> ${booking.description}</p>
+                    
+                    </div>
+                    <div class="ml-4">
+                        <p><strong>Status:</strong> 
+                            <span class="badge badge-${getStatusBadgeClass(booking.status)}">${booking.status}</span>
+                        </p>
+                        <button class="btn btn-success btn-sm mr-2 accept-btn" onclick="updateStatus('${booking._id}', '${booking.email}', 'Accepted', this)" ${isDisabled ? 'disabled' : ''}>Accept</button>
+                        <button class="btn btn-danger btn-sm reject-btn" onclick="updateStatus('${booking._id}', '${booking.email}', 'Rejected', this)" ${isDisabled ? 'disabled' : ''}>Reject</button>
+                    </div>
+                `;
+
+                // Increment the respective count based on booking status
+                if (booking.status === 'Pending') {
+                    pendingCount++;
+                } else if (booking.status === 'Accepted') {
+                    acceptedCount++;
+                } else if (booking.status === 'Completed') {
+                    completedCount++;
+                }
+
+                bookingList.appendChild(bookingItem);
+            });
+
+            // Update the status counts
+            pendingCountElement.textContent = pendingCount;
+            acceptedCountElement.textContent = acceptedCount;
+            completedCountElement.textContent = completedCount;
+        }
+
+        // Function to determine the badge class for the status
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Pending':
+                    return 'warning';
+                case 'Accepted':
+                    return 'success';
+                case 'Completed':
+                    return 'primary';
+                case 'Rejected':
+                    return 'danger';
+                default:
+                    return 'secondary';
+            }
+        }
+
+        // Function to update status and disable buttons after selection
+        async function updateStatus(id, email, status, btn) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/form/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: status, email: email })
+                });
+
+                const update = await response.json();
+                console.log(update);
+
+                alert("Status updated successfully");
+
+                // Disable both Accept and Reject buttons after selection
+                const parentDiv = btn.parentElement;
+                parentDiv.querySelector(".accept-btn").disabled = true;
+                parentDiv.querySelector(".reject-btn").disabled = true;
+
+                // Update the status badge in the UI
+                parentDiv.querySelector("span.badge").textContent = status;
+                parentDiv.querySelector("span.badge").className = `badge badge-${getStatusBadgeClass(status)}`;
+                
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        // Function to download prescription as PDF
+        function downloadPrescriptionAsPDF(imageUrl, patientName, bookingId) {
+            // Show loading indicator or message
+            alert("Preparing PDF download. Please wait...");
+            
+            // Create a new jsPDF instance
+            const doc = new jsPDF();
+            
+            // Add title to the PDF
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text(`Prescription - ${patientName}`, 105, 20, { align: "center" });
+            
+            // Add horizontal line
+            doc.setLineWidth(0.5);
+            doc.line(20, 25, 190, 25);
+            
+            // Load the prescription image
+            const img = new Image();
+            img.crossOrigin = "Anonymous";  // Handle CORS if needed
+            
+            img.onload = function() {
+                try {
+                    // Calculate dimensions to fit on page while maintaining aspect ratio
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    
+                    // Set margins
+                    const margin = 20;
+                    const maxWidth = pageWidth - (margin * 2);
+                    const maxHeight = pageHeight - 40 - margin; // 40 for the header
+                    
+                    // Calculate image dimensions to fit the page
+                    let imgWidth = maxWidth;
+                    let imgHeight = (img.height * maxWidth) / img.width;
+                    
+                    // If the height is too large, adjust both dimensions
+                    if (imgHeight > maxHeight) {
+                        imgHeight = maxHeight;
+                        imgWidth = (img.width * maxHeight) / img.height;
+                    }
+                    
+                    // Add the image to the PDF
+                    doc.addImage(img, 'PNG', margin + (maxWidth - imgWidth) / 2, 30, imgWidth, imgHeight);
+                    
+                    // Add footer
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(10);
+                    doc.text("This is an official prescription document.", 105, pageHeight - 10, { align: "center" });
+                    
+                    // Save the PDF
+                    doc.save(`prescription_${patientName}_${bookingId}.pdf`);
+                } catch (error) {
+                    console.error("Error generating PDF:", error);
+                    alert("Error creating PDF. Please try again.");
+                }
+            };
+            
+            img.onerror = function() {
+                console.error("Failed to load image:", imageUrl);
+                alert("Failed to load prescription image. Please try again later.");
+            };
+            
+            // Set the image source to start loading
+            img.src = imageUrl;
+        }
+
+        // Fetch and render bookings when the page loads
+        window.onload = fetchBookings;
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        .chat-notification {
+            position: relative;
+            display: inline-block;
+        }
+
+        .chat-notification::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .chat-notification.has-notification::after {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
+        <a class="navbar-brand text-white" href="./admindashboard.html">ADMIN-DASHBOARD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-light" href="./allBookingpage.html">All Bookings</a>
+                </li>
+                <li class="nav-item ml-3">
+                    <a class="nav-link btn btn-light chat-notification" href="./admin-chat.html" id="chatLink">
+                        <i class="fas fa-comments"></i> Chat Support
+                    </a>
+                </li>
+                <li class="nav-item ml-3">
+                    <button class="nav-link btn btn-primary text-white" onclick="logoutBtn()">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="d-flex justify-content-end mb-4">
+        <button class="btn btn-primary mt-4 mr-4" id="addDoctorButton" onclick="addDoctor()"><i class="fas fa-plus"></i> Add Doctor</button>
+    </div>
+
+    <div class="row" id="doctorCardsContainer">
+        <!-- Dynamic doctor cards will be rendered here -->
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // Check Admin Auth
+        function checkAdminAuth() {
+            const token = sessionStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/admin-dashboard/adminLoginpage.html";
+                return;
+            }
+        }
+        checkAdminAuth();
+
+        // Fetch and render doctors
+        async function fetchDoctors() {
+            try {
+                const response = await fetch('/api/admin/doctorlist/doctors');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch doctors');
+                }
+                const doctors = await response.json();
+                renderDoctorCards(doctors.data);
+            } catch (error) {
+                console.error('Error fetching doctors:', error);
+            }
+        }
+
+        function renderDoctorCards(doctors) {
+            const container = document.getElementById('doctorCardsContainer');
+            container.innerHTML = '';
+            doctors.forEach(doctor => {
+                const card = document.createElement('div');
+                card.className = 'col-md-4 mb-3';
+                card.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <h5 class="card-title">${doctor.name}</h5>
+                            </div>
+                            <p class="card-text"><strong>Specialty:</strong> ${doctor.specialty}</p>
+                            <p class="card-text"><strong>Available Time:</strong> ${doctor.availability}</p>
+                            <p class="card-text"><strong>Contact:</strong> ${doctor.phonenumber}</p>
+                            <p class="card-text"><strong>Email:</strong> ${doctor.email}</p>
+                            <p class="card-text"><strong>Degree:</strong> ${doctor.degree}</p>
+                            <p class="card-text"><strong>Address:</strong> ${doctor.address}</p>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDoctor('${doctor._id}')"><i class="fas fa-trash-alt"></i> Delete</button>
+                            <button class="btn btn-warning btn-sm" onclick="editDoctor('${doctor._id}')"><i class="fas fa-edit"></i> Edit</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchDoctors();
+
+        async function deleteDoctor(id) {
+            const confirmDelete = confirm("Are you sure you want to delete? This action cannot be undone.");
+            if (confirmDelete) {
+                const response = await fetch(`/api/admin/doctorlist/doctors/${id}`, {
+                    method: 'DELETE'
+                });
+                const message = await response.json();
+                if (message) {
+                    alert("Doctor deleted successfully.");
+                    fetchDoctors();
+                }
+            }
+        }
+
+        function logoutBtn() {
+            sessionStorage.clear();
+            window.location.href = "./adminLoginpage.html";
+        }
+
+        function addDoctor() {
+            window.location.href = "./adminadddoctorform.html";
+        }
+
+        // 🔴 SOCKET.IO - Chat Notification
+        const socket = io(); // Automatically connects to backend
+
+        socket.on('message', (msg) => {
+            console.log("Message from user:", msg);
+            const chatLink = document.getElementById('chatLink');
+            chatLink.classList.add('has-notification');
+        });
+
+        document.getElementById('chatLink').addEventListener('click', () => {
+            const chatLink = document.getElementById('chatLink');
+            chatLink.classList.remove('has-notification');
+            window.location.href = "/admin-chat";
+        });
+    </script>
+</body>
+
+</html>

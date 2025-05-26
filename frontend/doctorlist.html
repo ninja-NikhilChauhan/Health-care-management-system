@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Healthcare System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html">Profile</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="doctorlist.html">Our Doctor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="bookingappointment.html">Booking</a>
+                    </li>
+                    <!-- Add Sign-Up and Sign-In links -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="signup.html">Sign Up</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="signin.html">Sign In</a>
+                    </li>
+                   
+                </ul>
+                <form class="d-flex ms-3">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-light" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="col text-right mb-6"> <!-- Shifted the button to the right -->
+            <button type="button" class="btn btn-primary float-right" onclick="bookingAppointment()">Book Appointment</button>
+        </div>
+        <div class="row mb-4"> <!-- Added a row for the button and heading -->
+            <div class="col text-center"> <!-- Centering the content -->
+                <h1> Our Doctor List</h1>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Card 1 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="assets/doctor profile image.png" class="card-img-top" alt="Dr. John Doe">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Dr. John Doe</h5>
+                        <p class="card-text"><strong>Specialty:</strong> Cardiology</p>
+                        <p class="card-text">Available Time: 9 AM - 5 PM</p>
+                        <p class="card-text">Contact: (123) 456-7890</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="assets/doctor profile image.png" class="card-img-top" alt="Dr. Jane Smith">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Dr. Jane Smith</h5>
+                        <p class="card-text">Specialty: Dermatology</p>
+                        <p class="card-text">Available Time: 10 AM - 6 PM</p>
+                        <p class="card-text">Contact: (987) 654-3210</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="assets/doctor profile image.png" class="card-img-top" alt="Dr. Emily Johnson">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Dr. Emily Johnson</h5>
+                        <p class="card-text">Specialty: Pediatrics</p>
+                        <p class="card-text">Available Time: 8 AM - 4 PM</p>
+                        <p class="card-text">Contact: (555) 123-4567</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="assets/doctor profile image.png" class="card-img-top" alt="Dr. Michael Brown">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Dr. Michael Brown</h5>
+                        <p class="card-text">Specialty: Orthopedics</p>
+                        <p class="card-text">Available Time: 11 AM - 7 PM</p>
+                        <p class="card-text">Contact: (444) 987-6543</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 5 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="assets/doctor profile image.png" class="card-img-top" alt="Dr. Sarah Wilson">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Dr. Sarah Wilson</h5>
+                        <p class="card-text">Specialty: Neurology</p>
+                        <p class="card-text">Available Time: 1 PM - 9 PM</p>
+                        <p class="card-text">Contact: (222) 333-4444</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function bookingAppointment(){
+            window.location.href = "bookingappointment.html";
+        }
+    </script>
+</body>
+</html>
+

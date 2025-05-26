@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Chat</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    #chatWrapper {
+      display: flex;
+      height: 89vh;
+      margin-top: 20px;
+    }
+
+    #sidebar {
+      width: 350px;
+      background-color: #343a40;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      height: 100%;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    #sidebar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
+    #chatContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      background-color: white;
+      margin-left: 20px;
+      height: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: fixed;
+      right: 20px;
+      width: calc(100% - 390px);
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-wrap: inherit;
+      height: calc(100% - 120px);
+    }
+
+    .msg {
+      margin-bottom: 10px;
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      clear: both;
+    }
+
+    .user-msg {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      float: left;
+    }
+
+    .admin-msg {
+      background-color: #cfe2ff;
+      color: #084298;
+      float: right;
+      text-align: right;
+    }
+
+    .input-group {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: calc(100% - 390px);
+      padding: 0 20px;
+      background: white;
+    }
+
+    .input-group input {
+      border-radius: 20px;
+      padding: 10px 20px;
+    }
+
+    .input-group-append button {
+      border-radius: 20px;
+      margin-left: 10px;
+    }
+
+    h4 {
+      margin-bottom: 20px;
+    }
+
+    .user-list {
+      margin-top: 20px;
+    }
+
+    .user-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      background-color: #495057;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .user-item:hover {
+      background-color: #6c757d;
+    }
+
+    .user-item.active {
+      background-color: #0d6efd;
+    }
+
+    .user-status {
+      font-size: 0.8em;
+      color: #adb5bd;
+    }
+
+    .online {
+      color: #20c997;
+    }
+
+    .offline {
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
+        <a class="navbar-brand text-white" href="admindashboard.html">ADMIN-DASHBOARD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-light" href="allBookingpage.html">All Bookings</a>
+                </li>
+                <li class="nav-item ml-3">
+                    <button class="nav-link btn btn-primary text-white">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+<div id="chatWrapper">
+  <div id="sidebar">
+    <h5>Connected Users</h5>
+    <div class="user-list" id="userList">
+      <!-- Connected users will appear here -->
+    </div>
+  </div>
+
+  <div id="chatContainer">
+    <h4 class="text-center">Support Chat</h4>
+    <div id="messages"></div>
+    <div class="input-group" id="chatInputGroup" style="display: none;">
+      <input type="text" id="msgInput" class="form-control" placeholder="Type your message..."/>
+      <div class="input-group-append">
+        <button class="btn btn-primary" id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const socket = io();
+const userListDiv = document.getElementById('userList');
+const messagesDiv = document.getElementById('messages');
+const input = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatInputGroup = document.getElementById('chatInputGroup');
+
+let currentUser = null;
+
+// Initialize admin chat
+socket.emit('admin-join');
+console.log('👨‍💼 Admin chat initialized');
+
+// Handle connected users list
+socket.on('connected-users', (users) => {
+    console.log('👥 Received connected users:', users);
+    userListDiv.innerHTML = ''; // Clear existing users
+    users.forEach(userId => {
+        addUserToList(userId);
+    });
+});
+
+function addUserToList(userId) {
+    const userItem = document.createElement('div');
+    userItem.classList.add('user-item');
+    userItem.innerHTML = `
+        <div>${userId}</div>
+        <div class="user-status online">Online</div>
+    `;
+    userItem.addEventListener('click', () => switchUser(userId));
+    userListDiv.appendChild(userItem);
+}
+
+function switchUser(userId) {
+    console.log('🔄 Switching to user:', userId);
+    currentUser = userId;
+    messagesDiv.innerHTML = ''; // Clear old messages
+    document.querySelector('#chatContainer h4').innerText = `Chat with ${userId}`;
+    chatInputGroup.style.display = 'flex'; // Show input group when user is selected
+}
+
+sendBtn.addEventListener('click', () => {
+    const msg = input.value.trim();
+    if (msg !== '' && currentUser) {
+        console.log('📤 Sending message to user:', currentUser);
+        socket.emit('message', { to: currentUser, text: msg });
+
+        const div = document.createElement('div');
+        div.classList.add('msg', 'admin-msg');
+        div.innerText = msg;
+        messagesDiv.appendChild(div);
+        input.value = '';
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } else {
+        console.log('⚠️ Cannot send message: No user selected or empty message');
+    }
+});
+
+socket.on('user-connected', (userId) => {
+    console.log('👤 New user connected:', userId);
+    addUserToList(userId);
+});
+
+socket.on('user-disconnected', (userId) => {
+    console.log('❌ User disconnected:', userId);
+    const userItems = document.querySelectorAll('.user-item');
+    userItems.forEach(item => {
+        if (item.querySelector('div').textContent === userId) {
+            item.remove();
+        }
+    });
+    if (currentUser === userId) {
+        currentUser = null;
+        messagesDiv.innerHTML = '';
+        document.querySelector('#chatContainer h4').innerText = 'Support Chat';
+        chatInputGroup.style.display = 'none'; // Hide input group when user disconnects
+    }
+});
+
+socket.on('message', (data) => {
+    console.log('📥 Received message:', data);
+    if (typeof data === 'object' && data.from && data.text) {
+        if (!currentUser || currentUser === data.from) {
+            const div = document.createElement('div');
+            div.classList.add('msg', 'user-msg');
+            div.innerText = data.text;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    }
+});
+
+// Handle Enter key
+input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendBtn.click();
+    }
+});
+</script>
+
+</body>
+</html>

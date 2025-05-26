@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Registration Form</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+        }
+
+        .btn-block {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-block:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        .form-control {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
+        <a class="navbar-brand text-white" href="admindashboard.html">ADMIN-DASHBOARD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-light" href="allBookingpage.html">All Bookings</a>
+                </li>
+                <li class="nav-item ml-3">
+                    <button class="nav-link btn btn-primary text-white">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h3 class="text-center mb-4">Doctor Registration Form</h3>
+        <form id="doctorForm">
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter name" required>
+            </div>
+
+            <!-- Specialty -->
+            <div class="form-group">
+                <label for="specialty">Specialty</label>
+                <select class="form-control" id="specialty" required>
+                    <option value="">Select Specialty</option>
+                    <option value="Allergist">Allergist</option>
+                    <option value="Anesthesiologist">Anesthesiologist</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <option value="Endocrinologist">Endocrinologist</option>
+                    <option value="Gastroenterologist">Gastroenterologist</option>
+                    <option value="Nephrologist">Nephrologist</option>
+                </select>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group">
+                <label for="phonenumber">Phone Number</label>
+                <input type="tel" class="form-control" id="phonenumber" placeholder="Enter phone number" required>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-group">
+                <label for="dateOfBirth">Date of Birth</label>
+                <input type="date" class="form-control" id="dateOfBirth" required>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" placeholder="Enter address" required>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+            </div>
+
+            <!-- Availability -->
+            <div class="form-group">
+                <label for="availability">Availability</label>
+                <select class="form-control" id="availability" required>
+                    <option value="">Select Availability</option>
+                    <option value="Morning">Morning [8 AM - 11 AM]</option>
+                    <option value="Afternoon">Afternoon [12 PM - 4 PM]</option>
+                    <option value="Evening">Evening [4 PM - 7 PM]</option>
+                    <option value="FullDay">Full Day [9 AM - 6 PM]</option>
+                </select>
+            </div>
+
+            <!-- Degree -->
+            <div class="form-group">
+                <label for="degree">Degree</label>
+                <input type="text" class="form-control" id="degree" placeholder="Enter degree" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-block text-white">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Handle form submission
+        document.getElementById("doctorForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const specialty = document.getElementById("specialty").value;
+            const phonenumber = document.getElementById("phonenumber").value;
+            const dateOfBirth = document.getElementById("dateOfBirth").value;
+            const address = document.getElementById("address").value;
+            const email = document.getElementById("email").value;
+            // const availability = document.getElementById("availability").value;
+            const degree = document.getElementById("degree").value;
+
+            const availabilitySelect = document.getElementById("availability");
+            const availability = Array.from(availabilitySelect.selectedOptions).map(option => option.value);
+
+
+            const doctorData = {
+                name,
+                specialty,
+                phonenumber,
+                dateOfBirth,
+                address,
+                email,
+                availability,
+                degree
+            };
+console.log(doctorData)
+            try {
+                const response = await fetch("http://localhost:5000/api/admin/doctorlist/createdoctors", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(doctorData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Doctor registered successfully!");
+                    // Redirect to another page or clear the form if needed
+                    window.location.href = "/admin-dashboard/admindashboard.html"; // Redirect if needed
+                } else {
+                    alert(result.error || "Something went wrong!");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("There was an error during registration.");
+            }
+        });
+    </script>
+</body>
+
+</html>
